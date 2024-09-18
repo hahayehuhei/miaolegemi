@@ -4,7 +4,7 @@ import pygame
 import math
 
 # 定义游戏相关属性
-TITLE = '五角星形状游戏'
+TITLE = '喵了个咪'
 WIDTH = 600
 HEIGHT = 720
 
@@ -32,8 +32,11 @@ game_state = STATE_MAIN_MENU
 pygame.font.init()
 font = pygame.font.Font('C:/Windows/fonts/msyh.ttc', 50)  # 指定字体文件和字号
 
+# 倒计时相关变量
+countdown = 60  # 倒计时60秒
+
 def initialize_game():
-    global tiles, docks, game_state
+    global tiles, docks, game_state, countdown
     # 初始化牌组，每种类型图片的数量要相等且为3的倍数
     ts = list(range(1, 7)) * (total_tiles // 6)  # 6种图案，确保牌的数量足够
     random.shuffle(ts)
@@ -81,6 +84,8 @@ def initialize_game():
 
     docks = []
     game_state = STATE_PLAYING
+    countdown = 60  # 重置倒计时
+    clock.schedule_interval(update_countdown, 1.0)  # 每秒更新一次倒计时
 
 # 计算总牌数
 total_tiles = 54  # 设定牌数大于50
@@ -98,7 +103,7 @@ def draw_main_menu():
 def draw_game_over():
     screen.clear()
     background.draw()
-    if len(docks) >= 8:  # 缓冲栏满，游戏失败
+    if len(docks) >= 8 or countdown <= 0:  # 缓冲栏满或时间到，游戏失败
         draw_text('失败', WIDTH // 2, HEIGHT // 2 - 50)
     elif len(tiles) == 0:  # 所有牌被消除，游戏胜利
         draw_text('胜利', WIDTH // 2, HEIGHT // 2 - 50)
@@ -118,7 +123,8 @@ def draw():
             tile.left = DOCK.x + i * T_WIDTH
             tile.top = DOCK.y
             tile.draw()
-        if len(docks) >= 8:
+        draw_text(f'时间: {countdown}', WIDTH // 2, HEIGHT - 50)  # 显示倒计时在屏幕下方
+        if len(docks) >= 8 or countdown <= 0:
             game_state = STATE_GAME_OVER
         elif len(tiles) == 0:
             game_state = STATE_GAME_OVER
@@ -159,6 +165,13 @@ def on_mouse_down(pos):
             initialize_game()
         elif Rect((WIDTH // 2 - 100, HEIGHT // 2 + 100), (200, 50)).collidepoint(pos):
             exit()
+
+def update_countdown():
+    global countdown, game_state
+    if game_state == STATE_PLAYING:
+        countdown -= 1
+        if countdown <= 0:
+            game_state = STATE_GAME_OVER
 
 # 运行游戏
 pgzrun.go()
